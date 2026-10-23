@@ -21,6 +21,7 @@ The website has not been published or pushed by this chat. `.openai/hosting.json
 
 - Choose a donor or acceptor role, then click a tower row; or use the two menus.
 - Try presets for aerobic hydrogen oxidation, denitrification, sulfate reduction, methanol oxidation and acetate oxidation.
+- Click **Show more!** to reveal seven additional entries from the original chart: tetrathionate/thiosulfate, cytochromes b/c/a, ubiquinone, and both iron values. The toggle updates the tower, menus and library. Iron entries are reference-only to avoid mixing incompatible pH/speciation assumptions.
 - Open **Couple library** for all reduction half-reactions and ecological context.
 - Expand **Explore nonstandard conditions** to adjust reduction activity quotients.
 - Open **Field guide** for interpretation, assumptions and references.
@@ -44,6 +45,6 @@ Q′ means the full reduction half-reaction activity quotient excluding buffered
 - `docs/app.js`: couple data, stoichiometry, energetics, interactions
 - `tests/chemistry.cjs`: chemistry regression checks
 
-Run checks from the repository root with `node tests/chemistry.cjs`. The checks cover atom and charge conservation, electron cancellation across all 144 pairings, reverse-reaction energy symmetry, known aerobic/sulfate examples and the direction of Nernst corrections.
+Run checks from the repository root with `node tests/chemistry.cjs`. The checks cover atom and charge conservation, electron cancellation across all 289 selectable pairings (17 couples), all 19 formal half-reactions, base/expanded counts, iron exclusions, precision of chart values, reverse-reaction energy symmetry, known aerobic/sulfate examples and the direction of Nernst corrections.
 
 Google Fonts optionally supplies the interface fonts. System font fallbacks allow the app to work offline.
