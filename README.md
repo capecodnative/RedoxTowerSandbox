@@ -24,6 +24,8 @@ The website has not been published or pushed by this chat. `.openai/hosting.json
 - Click **Show more!** to reveal seven additional entries from the original chart: tetrathionate/thiosulfate, cytochromes b/c/a, ubiquinone, and both iron values. The toggle updates the tower, menus and library. Iron entries are reference-only to avoid mixing incompatible pH/speciation assumptions.
 - Open **Couple library** for all reduction half-reactions and ecological context.
 - Expand **Explore nonstandard conditions** to adjust reduction activity quotients.
+- Enable **Photosystems** to add ground-state and excited-state P680/P700 couples. Excited states are donors only; their single-transfer energy estimates exclude photon input. Reaction-center activity-quotient controls are disabled.
+- Open **Light reactions ☀** for an interactive oxygenic Z-scheme: switch PSII/PSI light on or off and step through water oxidation, the connecting chain, and NADPH production.
 - Open **Field guide** for interpretation, assumptions and references.
 
 ## Model
@@ -43,8 +45,9 @@ Q′ means the full reduction half-reaction activity quotient excluding buffered
 - `docs/index.html`: layout, field guide, source links
 - `docs/style.css`: responsive styling
 - `docs/app.js`: couple data, stoichiometry, energetics, interactions
+- `docs/photosystems.js`: interactive light-reaction pathway
 - `tests/chemistry.cjs`: chemistry regression checks
 
-Run checks from the repository root with `node tests/chemistry.cjs`. The checks cover atom and charge conservation, electron cancellation across all 289 selectable pairings (17 couples), all 19 formal half-reactions, base/expanded counts, iron exclusions, precision of chart values, reverse-reaction energy symmetry, known aerobic/sulfate examples and the direction of Nernst corrections.
+Run checks from the repository root with `node tests/chemistry.cjs`. The checks cover atom and charge conservation, electron cancellation across all 399 allowed donor/acceptor pairings (21 donors, 19 acceptors), all 23 formal half-reactions, base/expanded counts, iron exclusions, precision of chart values, reverse-reaction energy symmetry, known aerobic/sulfate examples and the direction of Nernst corrections.
 
 Google Fonts optionally supplies the interface fonts. System font fallbacks allow the app to work offline.
