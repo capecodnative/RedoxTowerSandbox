@@ -1,7 +1,6 @@
-const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
-const code=fs.readFileSync('docs/app.js','utf8').split('const donorNames=')[0];
-const context={document:{getElementById(){}}};vm.createContext(context);vm.runInContext(code+';globalThis.data={couples,calculate};',context);
-const {couples,calculate}=context.data;
+const assert=require('node:assert/strict');
+const {getCouples,calculate,canUse}=require('../docs/core.js');
+const couples=getCouples('historical');
 // Vectors are C, H, O, N, S, charge. NAD cofactors share a conserved backbone.
 const atoms={CO2:[1,0,2,0,0,0],H:[0,1,0,0,0,1],e:[0,0,0,0,0,-1],glucose:[6,12,6,0,0,0],water:[0,2,1,0,0,0],H2:[0,2,0,0,0,0],methanol:[1,4,1,0,0,0],NAD:[0,0,0,0,0,1],NADH:[0,1,0,0,0,0],acetate:[2,3,2,0,0,-1],S:[0,0,0,0,1,0],H2S:[0,2,0,0,1,0],SO4:[0,0,4,0,1,-2],pyruvate:[3,3,3,0,0,-1],lactate:[3,5,3,0,0,-1],fumarate:[4,2,4,0,0,-2],succinate:[4,4,4,0,0,-2],NO3:[0,0,3,1,0,-1],NO2:[0,0,2,1,0,-1],N2:[0,0,0,2,0,0],O2:[0,0,2,0,0,0]};
 // Carrier backbones are conserved; charges here are relative oxidation states.
@@ -22,3 +21,34 @@ assert.equal(couples.find(c=>c.id==='tetrathionate').e,.024);assert.equal(couple
 const psii=couples.find(c=>c.id==='p680'),psiiStar=couples.find(c=>c.id==='p680star'),psi=couples.find(c=>c.id==='p700');
 assert.ok(calculate(o,psii).de>0);assert.ok(calculate(o,psi).de<0);assert.ok(psiiStar.e<psii.e);assert.ok(couples.filter(c=>c.donorOnly).every(c=>c.photo));
 console.log('PASS: 23 formal half-reactions, 399 donor/acceptor pairings, photosystem state bookkeeping, water-oxidation potential ordering, existing chemistry regressions.');
+
+// Independently recorded chart values ensure default mode preserves every potential.
+const historical={glucose:-.43,hydrogen:-.42,methanol:-.38,nad:-.32,acetate:-.28,sulfur:-.28,sulfate:-.22,lactate:-.19,fumarate:.03,nitrite:.42,nitrogen:.74,oxygen:.82,tetrathionate:.024,cytb:.035,quinone:.11,iron7:.2,cytc:.25,cyta:.39,iron2:.76,p680:1.2,p680star:-.6,p700:.5,p700star:-1.2};
+assert.deepEqual(Object.fromEntries(couples.map(c=>[c.id,c.e])),historical);
+for(const dataset of ['historical','reviewed']){
+  const all=getCouples(dataset);
+  const donors=all.filter(c=>canUse(c,'donor'));
+  const acceptors=all.filter(c=>canUse(c,'acceptor'));
+  assert.equal(donors.length,21);assert.equal(acceptors.length,19);
+  for(const c of all){balanced(c.s,dataset+'/'+c.id);assert.equal(-c.s.e,c.n)}
+  for(const d of donors)for(const a of acceptors){
+    const r=calculate(d,a,1.2,-.8);balanced(r.net,dataset+'/'+d.id+'/'+a.id);
+    assert.equal(r.net.e,0);assert.equal(r.n%d.n,0);assert.equal(r.n%a.n,0);
+    const reverse=calculate(a,d,-.8,1.2);assert.ok(Math.abs(r.dg+reverse.dg)<1e-9);
+  }
+  for(const id of ['iron7','iron2'])for(const role of ['donor','acceptor'])assert.equal(canUse(all.find(c=>c.id===id),role),false);
+  for(const id of ['p680star','p700star']){
+    const c=all.find(c=>c.id===id);assert.equal(canUse(c,'donor'),true);assert.equal(canUse(c,'acceptor'),false);
+  }
+}
+const reviewed=getCouples('reviewed');
+const reviewedT=reviewed.find(c=>c.id==='tetrathionate');
+const oldT=couples.find(c=>c.id==='tetrathionate');
+assert.equal(reviewedT.e,.198);assert.equal(reviewedT.uncertainty,.004);
+assert.deepEqual(reviewedT.s,oldT.s);
+for(const c of reviewed)if(c.id!=='tetrathionate')assert.equal(c.e,historical[c.id]);
+// Hydrogen/tetrathionate: 2 electrons, +0.174 V change, -33.57678 kJ/mol change.
+assert.ok(Math.abs((calculate(h,reviewedT).dg-calculate(h,oldT).dg)+33.57678)<1e-9);
+assert.ok(reviewed.indexOf(reviewedT)>reviewed.findIndex(c=>c.id==='quinone'));
+assert.ok(reviewed.indexOf(reviewedT)<reviewed.findIndex(c=>c.id==='iron7'));
+console.log('PASS: both datasets conserve chemistry and role eligibility; all historical potentials retained; reviewed tetrathionate energy and ordering verified.');
